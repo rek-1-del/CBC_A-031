@@ -2,6 +2,8 @@ import { users, type User, type InsertUser } from "@shared/schema";
 import { events, type Event, type InsertEvent } from "@shared/schema";
 import { notes, type Note, type InsertNote } from "@shared/schema";
 import { isSameDay } from "date-fns";
+import { db } from "./db";
+import { eq, gte, desc, and, sql } from "drizzle-orm";
 
 // Storage interface with CRUD methods
 export interface IStorage {
@@ -28,27 +30,153 @@ export interface IStorage {
   deleteNote(id: number): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private events: Map<number, Event>;
-  private notes: Map<number, Note>;
-  
-  private userIdCounter: number;
-  private eventIdCounter: number;
-  private noteIdCounter: number;
+export class DatabaseStorage implements IStorage {
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
 
-  constructor() {
-    this.users = new Map();
-    this.events = new Map();
-    this.notes = new Map();
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+  
+  // Event methods
+  async getAllEvents(): Promise<Event[]> {
+    return await db.select().from(events);
+  }
+  
+  async getEventById(id: number): Promise<Event | undefined> {
+    const [event] = await db.select().from(events).where(eq(events.id, id));
+    return event || undefined;
+  }
+  
+  async getEventsByDate(date: Date): Promise<Event[]> {
+    // Get all events on the specified date
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
     
-    this.userIdCounter = 1;
-    this.eventIdCounter = 1;
-    this.noteIdCounter = 1;
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
     
-    // Add demo user
-    this.users.set(1, {
-      id: 1,
+    return await db.select().from(events)
+      .where(
+        and(
+          gte(events.startTime, startOfDay),
+          sql`${events.startTime} < ${endOfDay}`
+        )
+      );
+  }
+  
+  async getUpcomingEvents(fromDate: Date, limit: number = 3): Promise<Event[]> {
+    return await db.select().from(events)
+      .where(gte(events.startTime, fromDate))
+      .orderBy(events.startTime)
+      .limit(limit);
+  }
+  
+  async createEvent(insertEvent: InsertEvent): Promise<Event> {
+    const [event] = await db
+      .insert(events)
+      .values(insertEvent)
+      .returning();
+    return event;
+  }
+  
+  async updateEvent(id: number, updateData: InsertEvent): Promise<Event | undefined> {
+    const [updatedEvent] = await db
+      .update(events)
+      .set(updateData)
+      .where(eq(events.id, id))
+      .returning();
+    
+    return updatedEvent || undefined;
+  }
+  
+  async deleteEvent(id: number): Promise<boolean> {
+    const [deletedEvent] = await db
+      .delete(events)
+      .where(eq(events.id, id))
+      .returning();
+    
+    return !!deletedEvent;
+  }
+  
+  // Note methods
+  async getAllNotes(): Promise<Note[]> {
+    return await db.select().from(notes);
+  }
+  
+  async getNoteById(id: number): Promise<Note | undefined> {
+    const [note] = await db.select().from(notes).where(eq(notes.id, id));
+    return note || undefined;
+  }
+  
+  async getNoteByDate(date: Date): Promise<Note | undefined> {
+    // Get the note from the specified date
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    const [note] = await db.select().from(notes)
+      .where(
+        and(
+          gte(notes.date, startOfDay),
+          sql`${notes.date} < ${endOfDay}`
+        )
+      );
+    
+    return note || undefined;
+  }
+  
+  async createNote(insertNote: InsertNote): Promise<Note> {
+    const [note] = await db
+      .insert(notes)
+      .values(insertNote)
+      .returning();
+    
+    return note;
+  }
+  
+  async updateNote(id: number, updateData: InsertNote): Promise<Note | undefined> {
+    const [updatedNote] = await db
+      .update(notes)
+      .set(updateData)
+      .where(eq(notes.id, id))
+      .returning();
+    
+    return updatedNote || undefined;
+  }
+  
+  async deleteNote(id: number): Promise<boolean> {
+    const [deletedNote] = await db
+      .delete(notes)
+      .where(eq(notes.id, id))
+      .returning();
+    
+    return !!deletedNote;
+  }
+}
+
+// Initialize with demo data
+async function initializeDatabase() {
+  // Check if the database already has users
+  const existingUsers = await db.select().from(users);
+  
+  if (existingUsers.length === 0) {
+    // Add a demo user
+    await db.insert(users).values({
       username: "doctor",
       password: "password123",
       fullName: "Dr. Sarah Johnson",
@@ -56,14 +184,11 @@ export class MemStorage implements IStorage {
       avatarUrl: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d"
     });
     
-    // No predefined events per user request
-    const today = new Date(); // Keep this for the notes
-    
-    // Add demo note for today
-    this.notes.set(1, {
-      id: 1,
+    // Add a demo note
+    const today = new Date();
+    await db.insert(notes).values({
       userId: 1,
-      date: today.toISOString(),
+      date: today,
       content: `
         <p><b>Research Meeting Notes:</b></p>
         <p>- Discuss progress on cardiac study</p>
@@ -77,130 +202,10 @@ export class MemStorage implements IStorage {
         <p>- Schedule next appointment</p>
       `
     });
-    
-    this.eventIdCounter = 1; // Start from 1 as we removed demo events
-    this.noteIdCounter = 2; // Set after initializing demo notes
-  }
-
-  // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userIdCounter++;
-    const user: User = { 
-      ...insertUser, 
-      id,
-      specialty: insertUser.specialty || null,
-      avatarUrl: insertUser.avatarUrl || null 
-    };
-    this.users.set(id, user);
-    return user;
-  }
-  
-  // Event methods
-  async getAllEvents(): Promise<Event[]> {
-    return Array.from(this.events.values());
-  }
-  
-  async getEventById(id: number): Promise<Event | undefined> {
-    return this.events.get(id);
-  }
-  
-  async getEventsByDate(date: Date): Promise<Event[]> {
-    return Array.from(this.events.values()).filter(event => 
-      isSameDay(new Date(event.startTime), date)
-    );
-  }
-  
-  async getUpcomingEvents(fromDate: Date, limit: number = 3): Promise<Event[]> {
-    return Array.from(this.events.values())
-      .filter(event => new Date(event.startTime) >= fromDate)
-      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-      .slice(0, limit);
-  }
-  
-  async createEvent(insertEvent: InsertEvent): Promise<Event> {
-    const id = this.eventIdCounter++;
-    const event: Event = { 
-      ...insertEvent, 
-      id,
-      description: insertEvent.description || null,
-      location: insertEvent.location || null,
-      participants: insertEvent.participants || null,
-      hasReminder: insertEvent.hasReminder || null
-    };
-    this.events.set(id, event);
-    return event;
-  }
-  
-  async updateEvent(id: number, updateData: InsertEvent): Promise<Event | undefined> {
-    const event = this.events.get(id);
-    
-    if (!event) {
-      return undefined;
-    }
-    
-    const updatedEvent: Event = { 
-      ...updateData, 
-      id,
-      description: updateData.description || null,
-      location: updateData.location || null,
-      participants: updateData.participants || null,
-      hasReminder: updateData.hasReminder || null
-    };
-    this.events.set(id, updatedEvent);
-    return updatedEvent;
-  }
-  
-  async deleteEvent(id: number): Promise<boolean> {
-    return this.events.delete(id);
-  }
-  
-  // Note methods
-  async getAllNotes(): Promise<Note[]> {
-    return Array.from(this.notes.values());
-  }
-  
-  async getNoteById(id: number): Promise<Note | undefined> {
-    return this.notes.get(id);
-  }
-  
-  async getNoteByDate(date: Date): Promise<Note | undefined> {
-    return Array.from(this.notes.values()).find(note => 
-      isSameDay(new Date(note.date), date)
-    );
-  }
-  
-  async createNote(insertNote: InsertNote): Promise<Note> {
-    const id = this.noteIdCounter++;
-    const note: Note = { ...insertNote, id };
-    this.notes.set(id, note);
-    return note;
-  }
-  
-  async updateNote(id: number, updateData: InsertNote): Promise<Note | undefined> {
-    const note = this.notes.get(id);
-    
-    if (!note) {
-      return undefined;
-    }
-    
-    const updatedNote: Note = { ...updateData, id };
-    this.notes.set(id, updatedNote);
-    return updatedNote;
-  }
-  
-  async deleteNote(id: number): Promise<boolean> {
-    return this.notes.delete(id);
   }
 }
 
-export const storage = new MemStorage();
+// Initialize database with demo data
+initializeDatabase().catch(console.error);
+
+export const storage = new DatabaseStorage();
