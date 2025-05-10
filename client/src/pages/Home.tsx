@@ -3,13 +3,12 @@ import Sidebar from "@/components/Sidebar";
 import CalendarView from "@/components/Calendar/CalendarView";
 import DailySchedule from "@/components/Calendar/DailySchedule";
 import Notepad from "@/components/Notepad";
-import UpcomingEvents from "@/components/UpcomingEvents";
 import MedicalResources from "@/components/MedicalResources";
 import EventModal from "@/components/Calendar/EventModal";
 import { useCalendar } from "@/contexts/CalendarContext";
 import { formatDate } from "@/lib/utils/date";
 import { Button } from "@/components/ui/button";
-import { Menu, Plus, Bell, Settings } from "lucide-react";
+import { Menu, Plus, Settings } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Home() {
@@ -49,9 +48,6 @@ export default function Home() {
           
           <div className="flex items-center space-x-2 sm:space-x-4">
             <Button variant="ghost" size="icon">
-              <Bell className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
               <Settings className="h-5 w-5" />
             </Button>
             <Button className="hidden sm:flex" onClick={() => setIsModalOpen(true)}>
@@ -75,7 +71,6 @@ export default function Home() {
             {/* Right sidebar with notepad */}
             <div className="space-y-6">
               <Notepad />
-              <UpcomingEvents />
               <MedicalResources />
             </div>
           </div>
