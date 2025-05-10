@@ -1,4 +1,5 @@
 import { users, type User, type InsertUser } from "@shared/schema";
+import { userProfiles, type UserProfile, type InsertUserProfile } from "@shared/schema";
 import { events, type Event, type InsertEvent } from "@shared/schema";
 import { notes, type Note, type InsertNote } from "@shared/schema";
 import { isSameDay } from "date-fns";

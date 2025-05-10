@@ -11,7 +11,7 @@ import {
   ChevronUp,
   X
 } from "lucide-react";
-import Weather from "@/components/Weather";
+
 import SearchBar from "@/components/SearchBar";
 import ResourceLinks from "@/components/ResourceLinks";
 
@@ -30,7 +30,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Logo and profile section */}
       <div className="p-4 border-b border-neutral-200">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-primary">MedSchedule</h1>
+          <h1 className="text-xl font-bold text-primary">DocHelp</h1>
           <Button variant="ghost" size="icon" onClick={onClose} className="md:hidden">
             <X className="h-5 w-5" />
           </Button>
@@ -86,10 +86,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <ResourceLinks />
       </nav>
 
-      {/* Weather widget */}
-      <div className="p-4 border-t border-neutral-200">
-        <Weather />
-      </div>
+
     </aside>
   );
 }

@@ -11,6 +11,15 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
 });
 
+export const userProfiles = pgTable("user_profiles", {
+  id: serial("id").primaryKey(),
+  fullName: text("full_name").notNull(),
+  email: text("email"),
+  specialty: text("specialty"),
+  avatarUrl: text("avatar_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const events = pgTable("events", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -39,6 +48,13 @@ export const insertUserSchema = createInsertSchema(users).pick({
   avatarUrl: true,
 });
 
+export const insertUserProfileSchema = createInsertSchema(userProfiles).pick({
+  fullName: true,
+  email: true,
+  specialty: true,
+  avatarUrl: true,
+});
+
 export const insertEventSchema = createInsertSchema(events).pick({
   userId: true,
   title: true,
@@ -59,6 +75,9 @@ export const insertNoteSchema = createInsertSchema(notes).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
+export type UserProfile = typeof userProfiles.$inferSelect;
 
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type Event = typeof events.$inferSelect;

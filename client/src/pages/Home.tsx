@@ -41,7 +41,7 @@ export default function Home() {
               </Button>
             )}
             <div>
-              <h1 className="text-xl font-semibold">Medical Calendar</h1>
+              <h1 className="text-xl font-semibold">DocHelp</h1>
               <p className="text-sm text-muted-foreground">{formatDate(selectedDate, 'MMMM d, yyyy')}</p>
             </div>
           </div>
