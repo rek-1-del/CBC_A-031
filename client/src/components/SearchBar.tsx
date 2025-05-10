@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, BookOpen, ArrowRight } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -10,7 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import { formatAISearchResult, formatSearchQuery, getMedicalDisclaimer } from "@/lib/utils/ai-helper";
 
 export default function SearchBar() {
   const [query, setQuery] = useState("");
@@ -69,28 +71,54 @@ export default function SearchBar() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Medical AI Search Results</DialogTitle>
+            <DialogTitle className="flex items-center">
+              <BookOpen className="h-5 w-5 mr-2 text-primary" />
+              Medical AI Search Results
+            </DialogTitle>
             <DialogDescription>
-              Search query: {query}
+              AI-powered search on medical literature and resources
             </DialogDescription>
           </DialogHeader>
           
-          <div className="mt-4 max-h-96 overflow-y-auto">
+          <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2">
             {isSearching ? (
               <div className="flex flex-col items-center justify-center p-8">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 <p className="mt-4 text-sm text-neutral-500">Searching medical databases...</p>
+                <p className="text-xs text-neutral-400 mt-2">This may take a few moments...</p>
               </div>
             ) : (
-              <div className="prose max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: searchResults.replace(/\n/g, '<br/>') }}></div>
-                <p className="text-xs text-muted-foreground mt-6">
-                  Note: AI-generated content should not replace professional medical advice. 
-                  Always consult with a healthcare provider for medical decisions.
-                </p>
+              <div className="prose prose-sm max-w-none">
+                <div dangerouslySetInnerHTML={{ __html: formatSearchQuery(query) }}></div>
+                <div className="p-4 border border-muted rounded-md bg-card">
+                  <div dangerouslySetInnerHTML={{ 
+                    __html: formatAISearchResult(searchResults.replace(/\n/g, '<br/>')) 
+                  }}></div>
+                  <div dangerouslySetInnerHTML={{ __html: getMedicalDisclaimer() }}></div>
+                </div>
               </div>
             )}
           </div>
+          
+          <DialogFooter className="mt-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDialogOpen(false)}
+              className="mr-2"
+            >
+              Close
+            </Button>
+            <Button 
+              onClick={() => {
+                // Open in a new search
+                window.open(`https://www.ncbi.nlm.nih.gov/search/all/?term=${encodeURIComponent(query)}`, '_blank');
+              }}
+              className="flex items-center"
+            >
+              Search PubMed
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

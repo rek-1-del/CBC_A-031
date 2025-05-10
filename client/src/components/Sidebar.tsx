@@ -68,30 +68,30 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <ul className="space-y-1">
             <li>
               <Link href="/">
-                <a className="flex items-center px-3 py-2 text-sm rounded-md bg-primary bg-opacity-10 text-primary">
+                <div className="flex items-center px-3 py-2 text-sm rounded-md bg-primary bg-opacity-10 text-primary cursor-pointer">
                   <Calendar className="h-4 w-4 mr-2" /> Calendar
-                </a>
+                </div>
               </Link>
             </li>
             <li>
               <Link href="/">
-                <a className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-neutral-100 text-neutral-700">
+                <div className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-neutral-100 text-neutral-700 cursor-pointer">
                   <Clock className="h-4 w-4 mr-2" /> Today's Schedule
-                </a>
+                </div>
               </Link>
             </li>
             <li>
               <Link href="/">
-                <a className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-neutral-100 text-neutral-700">
+                <div className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-neutral-100 text-neutral-700 cursor-pointer">
                   <User className="h-4 w-4 mr-2" /> Patients
-                </a>
+                </div>
               </Link>
             </li>
             <li>
               <Link href="/">
-                <a className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-neutral-100 text-neutral-700">
+                <div className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-neutral-100 text-neutral-700 cursor-pointer">
                   <Bell className="h-4 w-4 mr-2" /> Notifications
-                </a>
+                </div>
               </Link>
             </li>
           </ul>
