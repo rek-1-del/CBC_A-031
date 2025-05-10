@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, BookOpen, ArrowRight } from "lucide-react";
+import { Search, BookOpen, ArrowRight, ExternalLink } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -12,12 +12,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { formatAISearchResult, formatSearchQuery, getMedicalDisclaimer } from "@/lib/utils/ai-helper";
+import { formatSearchQuery, getSearchDisclaimer, type GoogleSearchResult } from "@/lib/utils/search-helper";
 
 export default function SearchBar() {
   const [query, setQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState("");
+  const [searchResults, setSearchResults] = useState<GoogleSearchResult[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   
@@ -30,19 +30,23 @@ export default function SearchBar() {
     setIsDialogOpen(true);
     
     try {
-      const response = await apiRequest('POST', '/api/ai/search', { query });
+      const response = await apiRequest('POST', '/api/search', { query });
       const data = await response.json();
-      setSearchResults(data.result);
+      setSearchResults(data.results);
     } catch (error) {
       toast({
         title: "Search error",
-        description: "Failed to get AI response. Please try again.",
+        description: "Failed to get search results. Please try again.",
         variant: "destructive",
       });
-      setSearchResults("Sorry, there was an error processing your query. Please try again.");
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
+  };
+
+  const openInNewTab = (url: string) => {
+    window.open(url, '_blank');
   };
 
   return (
@@ -50,7 +54,7 @@ export default function SearchBar() {
       <form onSubmit={handleSearch} className="relative">
         <Input
           type="text"
-          placeholder="Ask a medical question..."
+          placeholder="Search medical information..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="w-full px-3 py-2 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -65,7 +69,7 @@ export default function SearchBar() {
           <Search className="h-4 w-4" />
         </Button>
       </form>
-      <p className="text-xs text-neutral-500 mt-1">Powered by AI</p>
+      <p className="text-xs text-neutral-500 mt-1">Powered by Google Search</p>
       
       {/* Results Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -73,10 +77,10 @@ export default function SearchBar() {
           <DialogHeader>
             <DialogTitle className="flex items-center">
               <BookOpen className="h-5 w-5 mr-2 text-primary" />
-              Medical AI Search Results
+              Medical Search Results
             </DialogTitle>
             <DialogDescription>
-              AI-powered search on medical literature and resources
+              Search results from medical websites and resources
             </DialogDescription>
           </DialogHeader>
           
@@ -90,12 +94,30 @@ export default function SearchBar() {
             ) : (
               <div className="prose prose-sm max-w-none">
                 <div dangerouslySetInnerHTML={{ __html: formatSearchQuery(query) }}></div>
-                <div className="p-4 border border-muted rounded-md bg-card">
-                  <div dangerouslySetInnerHTML={{ 
-                    __html: formatAISearchResult(searchResults.replace(/\n/g, '<br/>')) 
-                  }}></div>
-                  <div dangerouslySetInnerHTML={{ __html: getMedicalDisclaimer() }}></div>
-                </div>
+                
+                {searchResults.length > 0 ? (
+                  <div className="space-y-4">
+                    {searchResults.map((result, index) => (
+                      <div 
+                        key={index} 
+                        className="p-4 border border-muted rounded-md bg-card hover:bg-accent/10 transition-colors cursor-pointer"
+                        onClick={() => openInNewTab(result.link)}
+                      >
+                        <h3 className="text-base font-medium text-primary flex items-center">
+                          {result.title}
+                          <ExternalLink className="ml-2 h-3 w-3 text-muted-foreground" />
+                        </h3>
+                        <p className="text-xs text-muted-foreground mb-1">{result.formattedUrl}</p>
+                        <p className="text-sm">{result.snippet}</p>
+                      </div>
+                    ))}
+                    <div dangerouslySetInnerHTML={{ __html: getSearchDisclaimer() }}></div>
+                  </div>
+                ) : !isSearching && (
+                  <div className="p-4 border border-muted rounded-md bg-card">
+                    <p className="text-center">No results found for your query. Please try different keywords.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -110,12 +132,12 @@ export default function SearchBar() {
             </Button>
             <Button 
               onClick={() => {
-                // Open in a new search
-                window.open(`https://www.ncbi.nlm.nih.gov/search/all/?term=${encodeURIComponent(query)}`, '_blank');
+                // Open in a new Google search tab
+                window.open(`https://www.google.com/search?q=${encodeURIComponent(query + " medical research")}`, '_blank');
               }}
               className="flex items-center"
             >
-              Search PubMed
+              Search Google
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </DialogFooter>

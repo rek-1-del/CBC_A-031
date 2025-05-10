@@ -159,8 +159,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // AI Search API
-  app.post("/api/ai/search", async (req, res) => {
+  // Google Search API
+  app.post("/api/search", async (req, res) => {
     try {
       const { query } = req.body;
       
@@ -169,18 +169,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Import dynamically to avoid module loading issues
-      const { performMedicalSearch } = await import('./openai');
+      const { performGoogleSearch } = await import('./googleSearch');
       
       try {
-        const result = await performMedicalSearch(query);
-        res.json({ result });
-      } catch (aiError) {
-        console.error("OpenAI search error:", aiError);
-        res.status(500).json({ message: "AI search failed. Please try again later." });
+        const results = await performGoogleSearch(query);
+        res.json({ results });
+      } catch (searchError) {
+        console.error("Google search error:", searchError);
+        res.status(500).json({ message: "Search failed. Please try again later." });
       }
     } catch (error) {
       console.error("API error:", error);
-      res.status(500).json({ message: "Failed to process AI search query" });
+      res.status(500).json({ message: "Failed to process search query" });
     }
   });
   

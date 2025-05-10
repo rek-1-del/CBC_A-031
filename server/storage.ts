@@ -132,8 +132,8 @@ export class DatabaseStorage implements IStorage {
     const [note] = await db.select().from(notes)
       .where(
         and(
-          gte(notes.date, startOfDay),
-          sql`${notes.date} < ${endOfDay}`
+          gte(notes.date, startOfDay.toISOString()),
+          sql`${notes.date} < ${endOfDay.toISOString()}`
         )
       );
     
@@ -188,7 +188,7 @@ async function initializeDatabase() {
     const today = new Date();
     await db.insert(notes).values({
       userId: 1,
-      date: today,
+      date: today.toISOString(),
       content: `
         <p><b>Research Meeting Notes:</b></p>
         <p>- Discuss progress on cardiac study</p>
