@@ -56,132 +56,14 @@ export class MemStorage implements IStorage {
       avatarUrl: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d"
     });
     
-    // Add demo events
-    const today = new Date();
-    const todayStart = new Date(today);
-    todayStart.setHours(0, 0, 0, 0);
-    
-    // Research Meeting
-    this.events.set(1, {
-      id: 1,
-      userId: 1,
-      title: "Research Meeting",
-      description: "Discussion with research team on new clinical trial findings",
-      startTime: new Date(todayStart.getTime() + 8 * 60 * 60 * 1000), // 8 AM
-      endTime: new Date(todayStart.getTime() + 9.5 * 60 * 60 * 1000), // 9:30 AM
-      location: "Conference Room B",
-      eventType: "research",
-      participants: "team@hospital.org",
-      hasReminder: true
-    });
-    
-    // Patient Consultation
-    this.events.set(2, {
-      id: 2,
-      userId: 1,
-      title: "Patient Consultation",
-      description: "Follow-up with Mr. John Doe - Post-op check",
-      startTime: new Date(todayStart.getTime() + 10 * 60 * 60 * 1000), // 10 AM
-      endTime: new Date(todayStart.getTime() + 10.5 * 60 * 60 * 1000), // 10:30 AM
-      location: "Office #3",
-      eventType: "consultation",
-      participants: "",
-      hasReminder: true
-    });
-    
-    // Lunch Break
-    this.events.set(3, {
-      id: 3,
-      userId: 1,
-      title: "Lunch Break",
-      description: "Personal time",
-      startTime: new Date(todayStart.getTime() + 12 * 60 * 60 * 1000), // 12 PM
-      endTime: new Date(todayStart.getTime() + 13 * 60 * 60 * 1000), // 1 PM
-      location: "",
-      eventType: "break",
-      participants: "",
-      hasReminder: false
-    });
-    
-    // Team Review
-    this.events.set(4, {
-      id: 4,
-      userId: 1,
-      title: "Team Review",
-      description: "Weekly department case review session",
-      startTime: new Date(todayStart.getTime() + 13 * 60 * 60 * 1000), // 1 PM
-      endTime: new Date(todayStart.getTime() + 14.5 * 60 * 60 * 1000), // 2:30 PM
-      location: "Main Conference Room",
-      eventType: "meeting",
-      participants: "department@hospital.org",
-      hasReminder: true
-    });
-    
-    // Patient Rounds
-    this.events.set(5, {
-      id: 5,
-      userId: 1,
-      title: "Patient Rounds",
-      description: "Evening rounds with nursing staff",
-      startTime: new Date(todayStart.getTime() + 16 * 60 * 60 * 1000), // 4 PM
-      endTime: new Date(todayStart.getTime() + 17.5 * 60 * 60 * 1000), // 5:30 PM
-      location: "Ward 3",
-      eventType: "rounds",
-      participants: "nursing@hospital.org",
-      hasReminder: true
-    });
-    
-    // Upcoming events
-    const tomorrowStart = new Date(todayStart);
-    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-    
-    // Conference
-    this.events.set(6, {
-      id: 6,
-      userId: 1,
-      title: "Conference - New Cardiac Procedures",
-      description: "Annual cardiology conference",
-      startTime: new Date(todayStart.getTime() + (24 * 7 + 9) * 60 * 60 * 1000), // 7 days later, 9 AM
-      endTime: new Date(todayStart.getTime() + (24 * 7 + 17) * 60 * 60 * 1000), // 7 days later, 5 PM
-      location: "Medical Convention Center",
-      eventType: "conference",
-      participants: "",
-      hasReminder: true
-    });
-    
-    // Webinar
-    this.events.set(7, {
-      id: 7,
-      userId: 1,
-      title: "Journal Club Webinar",
-      description: "Discussion of recent medical journal publications",
-      startTime: new Date(todayStart.getTime() + (24 * 5 + 19) * 60 * 60 * 1000), // 5 days later, 7 PM
-      endTime: new Date(todayStart.getTime() + (24 * 5 + 20.5) * 60 * 60 * 1000), // 5 days later, 8:30 PM
-      location: "Online (Zoom)",
-      eventType: "webinar",
-      participants: "journal-club@hospital.org",
-      hasReminder: true
-    });
-    
-    // Surgery
-    this.events.set(8, {
-      id: 8,
-      userId: 1,
-      title: "Specialized Surgery",
-      description: "Cardiac procedure for Patient ID 12345",
-      startTime: new Date(todayStart.getTime() + (24 * 2 + 10) * 60 * 60 * 1000), // 2 days later, 10 AM
-      endTime: new Date(todayStart.getTime() + (24 * 2 + 14) * 60 * 60 * 1000), // 2 days later, 2 PM
-      location: "Operating Theater 2",
-      eventType: "surgery",
-      participants: "surgery-team@hospital.org",
-      hasReminder: true
-    });
+    // No predefined events per user request
+    const today = new Date(); // Keep this for the notes
     
     // Add demo note for today
     this.notes.set(1, {
       id: 1,
       userId: 1,
-      date: today,
+      date: today.toISOString(),
       content: `
         <p><b>Research Meeting Notes:</b></p>
         <p>- Discuss progress on cardiac study</p>
@@ -196,7 +78,7 @@ export class MemStorage implements IStorage {
       `
     });
     
-    this.eventIdCounter = 9; // Set after initializing demo events
+    this.eventIdCounter = 1; // Start from 1 as we removed demo events
     this.noteIdCounter = 2; // Set after initializing demo notes
   }
 
@@ -213,7 +95,12 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      specialty: insertUser.specialty || null,
+      avatarUrl: insertUser.avatarUrl || null 
+    };
     this.users.set(id, user);
     return user;
   }
@@ -242,7 +129,14 @@ export class MemStorage implements IStorage {
   
   async createEvent(insertEvent: InsertEvent): Promise<Event> {
     const id = this.eventIdCounter++;
-    const event: Event = { ...insertEvent, id };
+    const event: Event = { 
+      ...insertEvent, 
+      id,
+      description: insertEvent.description || null,
+      location: insertEvent.location || null,
+      participants: insertEvent.participants || null,
+      hasReminder: insertEvent.hasReminder || null
+    };
     this.events.set(id, event);
     return event;
   }
@@ -254,7 +148,14 @@ export class MemStorage implements IStorage {
       return undefined;
     }
     
-    const updatedEvent: Event = { ...updateData, id };
+    const updatedEvent: Event = { 
+      ...updateData, 
+      id,
+      description: updateData.description || null,
+      location: updateData.location || null,
+      participants: updateData.participants || null,
+      hasReminder: updateData.hasReminder || null
+    };
     this.events.set(id, updatedEvent);
     return updatedEvent;
   }

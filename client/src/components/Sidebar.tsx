@@ -80,20 +80,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </div>
               </Link>
             </li>
-            <li>
-              <Link href="/">
-                <div className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-neutral-100 text-neutral-700 cursor-pointer">
-                  <User className="h-4 w-4 mr-2" /> Patients
-                </div>
-              </Link>
-            </li>
-            <li>
-              <Link href="/">
-                <div className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-neutral-100 text-neutral-700 cursor-pointer">
-                  <Bell className="h-4 w-4 mr-2" /> Notifications
-                </div>
-              </Link>
-            </li>
+
           </ul>
         </div>
 
