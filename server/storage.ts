@@ -13,6 +13,12 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
+  // User Profile methods
+  getUserProfiles(): Promise<UserProfile[]>;
+  getUserProfileById(id: number): Promise<UserProfile | undefined>;
+  createUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
+  updateUserProfile(id: number, profile: InsertUserProfile): Promise<UserProfile | undefined>;
+  
   // Event methods
   getAllEvents(): Promise<Event[]>;
   getEventById(id: number): Promise<Event | undefined>;
