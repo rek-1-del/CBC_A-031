@@ -6,8 +6,6 @@ import {
   Search,
   Calendar,
   Clock,
-  User,
-  Bell,
   ExternalLink,
   ChevronDown,
   ChevronUp,
